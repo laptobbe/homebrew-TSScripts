@@ -1,0 +1,81 @@
+#!/usr/bin/env ruby
+
+require "optparse"
+require "ostruct"
+require "csv"
+
+def parse_args
+	options = OpenStruct.new
+
+	ARGV.options do |opts|
+		opts.banner = "Usage:  #{File.basename($PROGRAM_NAME)} -f file1,file2 -t distribution|development"
+	
+		opts.separator ""
+		opts.separator "Specific Options:"
+	
+		opts.on("-f", "--files FILES", Array , "Files from Testflight with added devices") do |files|
+			options.device_files = files
+		end
+
+		opts.on("-t", "--type TYPE", [:distribution, :development], "Select type (production, distribution)") do |t|
+        	options.type = t
+      	end
+	
+		opts.separator "Common Options:"
+	
+		opts.on( "-h", "--help", "Show this message." ) do
+			puts opts
+			exit
+		end
+	
+		begin
+			opts.parse!
+			
+			raise if options.type.nil?
+			raise if options.device_files.nil?
+		rescue
+			puts opts
+			exit
+		end
+	end
+	options
+end
+
+def parse_devices options
+	devices = []
+	options.device_files.each do |file|
+		CSV.foreach(file, :headers => true, :header_converters => :symbol, :col_sep => '	') do |device|
+			devices << device
+		end 
+	end
+	devices
+end
+
+def add_devices(devices, options)
+	devices = devices.uniq { |device| device[:deviceidentifier]}
+	device_list = `ios devices:list`
+	devices.each do |device|
+		if device_list.include? device[:deviceidentifier]
+			puts "Skipping: #{device[:devicename]}"
+		else 
+			puts "Adding: #{device[:devicename]}"
+			system "ios devices:add \"#{device[:devicename]}\"=\"#{device[:deviceidentifier]}\""
+		end
+	end
+
+	if devices.length > 0
+		puts "Starting profile managment"
+		system "ios profiles:manage:devices --type #{options.type.to_s}"
+		
+		puts "Stating profile download"
+		system "ios profiles:download --type #{options.type.to_s}"
+	else
+		puts "All devices already added"
+	end
+end
+
+options = parse_args
+devices = parse_devices(options)
+add_devices(devices, options)
+
+
