@@ -17,7 +17,7 @@ def parse_args
 			options.device_files = files
 		end
 
-		opts.on("-t", "--type TYPE", [:distribution, :development], "Select type (production, distribution)") do |t|
+		opts.on("-t", "--type TYPE", [:distribution, :development], "Select type (development, distribution)") do |t|
         	options.type = t
       	end
 	
