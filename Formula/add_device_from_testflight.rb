@@ -1,6 +1,8 @@
 require "formula"
 
 class AddDeviceFromTestflight < Formula
+	depends_on "cupertino" => :ruby
+
 	homepage "https://github.com/laptobbe/TSScripts"
 	url "https://github.com/laptobbe/TSScripts.git"
 	version '0.0.1'
