@@ -3,6 +3,7 @@
 require "optparse"
 require "ostruct"
 require "csv"
+require "colorize"
 
 def parse_args
 	options = OpenStruct.new
@@ -56,26 +57,44 @@ def add_devices(devices, options)
 	device_list = `ios devices:list`
 	devices.each do |device|
 		if device_list.include? device[:deviceidentifier]
-			puts "Skipping: #{device[:devicename]}"
+			puts "Skipping: #{device[:devicename]}".blue
 		else 
-			puts "Adding: #{device[:devicename]}"
+			puts "Adding: #{device[:devicename]}".green
 			system "ios devices:add \"#{device[:devicename]}\"=\"#{device[:deviceidentifier]}\""
 		end
 	end
+end
 
-	if devices.length > 0
-		puts "Starting profile managment"
-		system "ios profiles:manage:devices --type #{options.type.to_s}"
-		
-		puts "Stating profile download"
-		system "ios profiles:download --type #{options.type.to_s}"
-	else
-		puts "All devices already added"
-	end
+def start_profile_managment(devices, options)
+	abort "All devices already added".red unless devices.length > 0 
+	puts "Starting profile managment".green
+	system "ios profiles:manage:devices --type #{options.type.to_s}"
+end
+
+def start_profile_download(devices, options)
+	abort "All devices already added".red unless devices.length > 0 
+	puts "Stating profile download".green
+	system "ios profiles:download --type #{options.type.to_s}"
+end
+
+def find_profile
+	profiles = Dir.glob("*.mobileprovision")
+	abort "Could not find ONE profile, found: #{ipas}".red unless profiles.length == 1
+	return profiles[0]
+end
+
+def install_profile(profile)
+	temp_path = File.absolute_path(profile)
+	install_path = "~/Library/MobileDevice/Provisioning\\ Profiles/"
+	system "mv #{temp_path} #{install_path}"
+	puts "Profile installed to #{install_path}".green
 end
 
 options = parse_args
 devices = parse_devices(options)
 add_devices(devices, options)
-
+start_profile_managment(devices, options)
+start_profile_download(devices, options)
+profile = find_profile()
+install_profile(profile)
 
