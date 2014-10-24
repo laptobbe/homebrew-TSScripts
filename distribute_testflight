@@ -2,7 +2,6 @@
 
 require "optparse"
 require "ostruct"
-require "find"
 require "colorize"
 
 def parse_args
@@ -83,12 +82,29 @@ def commit_build_update(build_number, plist_file)
 	system "git commit -m \"Increased the build number to #{build_number}\""
 end
 
-def distribute(options)
+def build_ipa(options)
 	configuration = options.configuration.nil? ? nil : "--configuration #{options.configuration}"
 	scheme = options.scheme.nil? ? nil : "--scheme #{options.scheme}"
 	abort "Build Failed".red unless `ipa build #{scheme} #{configuration}`=~ /(?i)success/
 	puts "Build Succeeded".green
-	
+end
+
+def find_ipa
+	ipas = Dir.glob("*.ipa")
+	abort "Could not find ONE ipa, found: #{ipas}".red unless ipas.length == 1
+	return ipas[0]
+end
+
+def verify_ipa(ipa)
+	system "ipa info #{ipa}"
+	puts "Verify the ipa information is it correct (Y/n)"
+	verification = gets.downcase.strip
+	if verification != "y"
+		abort "Ipa not validated by user".red
+	end
+end
+
+def distribute(options)
 	notify = options.notify.nil? ? nil : "--notify"
 	system "ipa distribute:testflight --team_token #{options.team} --lists #{options.list} #{notify}"
 end
@@ -97,5 +113,8 @@ check_git_clean()
 options = parse_args()
 plist_file = find_plist()
 build_number = update_build_number(options, plist_file)
+build_ipa(options)
+ipa = find_ipa()
+verify_ipa(ipa)
 commit_build_update(build_number, plist_file)
 distribute(options)

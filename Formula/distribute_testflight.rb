@@ -6,7 +6,7 @@ class DistributeTestflight < Formula
 
 	homepage "https://github.com/laptobbe/TSScripts"
 	url "https://github.com/laptobbe/TSScripts.git"
-	version '0.0.1'
+	version '0.0.2'
 
 	skip_clean 'bin'
 
