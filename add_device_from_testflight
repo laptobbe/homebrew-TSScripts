@@ -79,7 +79,7 @@ end
 
 def find_profile
 	profiles = Dir.glob("*.mobileprovision")
-	abort "Could not find ONE profile, found: #{ipas}".red unless profiles.length == 1
+	abort "Could not find ONE profile, found: #{profiles}".red unless profiles.length == 1
 	return profiles[0]
 end
 
