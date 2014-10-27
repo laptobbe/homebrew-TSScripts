@@ -83,11 +83,25 @@ def find_profile
 	return profiles[0]
 end
 
+def rename_profile(profile, uuid)
+	newName = uuid + File.extname(profile)
+	File.rename(profile, newName)
+	newName
+end
+
+def parse_profile_uuid(profile)
+	raw = /<string>.{36}<\/string>/.match(`strings #{profile}`).to_s 
+	raw.delete! "</string>"
+	raw.delete! "<string>"
+	abort "Could not read UUID from profile found #{raw}" if raw.nil? || raw.length == 0
+	raw
+end
+
 def install_profile(profile)
 	temp_path = File.absolute_path(profile)
 	install_path = "~/Library/MobileDevice/Provisioning\\ Profiles/"
 	system "mv #{temp_path} #{install_path}"
-	puts "Profile installed to #{install_path}".green
+	puts "Profile installed to #{install_path}#{profile}".green
 end
 
 options = parse_args
@@ -96,5 +110,7 @@ add_devices(devices, options)
 start_profile_managment(devices, options)
 start_profile_download(devices, options)
 profile = find_profile()
+uuid = parse_profile_uuid(profile)
+profile = rename_profile(profile, uuid)
 install_profile(profile)
 

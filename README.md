@@ -14,12 +14,12 @@ Some scripts that I have create and found useful when working with iOS developme
 
 ````
 brew tap laptobbe/TSScripts
-brew insall [Script]
+brew install [Script]
 ````
 
 ## Add Device From Testflight
 
-A script that uses the [Nomad-CLI tool Cupertino](https://github.com/nomad/cupertino) by [Mattt Thompson](https://github.com/mattt) to take a textfile with added deveices from [TestFlight](http://www.testflightapp.com) , add then add all devices to the Apple Dev Center if they do not already exist there already. Then let you edit a provisining profile and ultimatly download the new profile.
+A script that uses the [Nomad-CLI tool Cupertino](https://github.com/nomad/cupertino) by [Mattt Thompson](https://github.com/mattt) to take a textfile with added devices from [TestFlight](http://www.testflightapp.com) , add then add all devices to the Apple Dev Center if they do not already exist there already. Then let you edit a provisioning profile and ultimately download the new profile and install it into *~/Library/MobileDevice/Provisioning Profiles/*.
 
 ### Example
 
