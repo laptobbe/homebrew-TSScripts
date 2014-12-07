@@ -36,3 +36,5 @@ A script that uses the [Nomad-CLI tool Shenzhen](https://github.com/nomad/shenzh
 ````
 distribute_testflight --list All --team TEAM_TOKEN --scheme [Build scheme] --configuration [Build configuration] --notify
 ````
+## LICENCE
+TSScripts is distributed under an MIT licence, see the licence file for detailed information.
