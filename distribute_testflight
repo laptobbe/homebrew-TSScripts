@@ -63,7 +63,7 @@ def check_git_clean
 end
 
 def find_plist 
-  	plists = Dir.glob("**/*nfo.plist").delete_if { |file| file =~ /(?i)test/ }
+  	plists = Dir.glob("**/*nfo.plist").delete_if { |file| file =~ /(?i)test/ }.delete_if { |file| file file =~ /(?i)Pods/}
 	abort "Could not find ONE plist file found: #{plists}".red unless plists.length == 1
 	return plists[0]
 end
