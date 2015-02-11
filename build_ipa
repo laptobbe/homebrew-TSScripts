@@ -1,0 +1,75 @@
+#!/usr/bin/env ruby
+
+require "optparse"
+require "ostruct"
+require "colorize"
+
+def parse_args
+	options = OpenStruct.new
+
+	ARGV.options do |opts|
+		opts.banner = "Usage:  #{File.basename($PROGRAM_NAME)} [-s scheme] [-b build] [-c configuration]"
+		
+		opts.separator ""
+		opts.separator "Specific Options:"
+
+		opts.on("-b", "--build [BUILD NUMBER]", "The build number for the release") do |build|
+			options.build = build
+		end
+
+		opts.on("-s", "--scheme [SCHEME]", "The sceme to use for building the ipa") do |scheme|
+			options.scheme = scheme
+		end
+
+		opts.on("-c", "--configuration [CONFIGURATION]", "The build configuration to use for the build") do |configuration|
+			options.configuration = configuration
+		end
+		
+		opts.separator "Common Options:"
+		
+		opts.on( "-h", "--help",
+		         "Show this message." ) do
+			puts opts
+			exit
+		end
+	end
+	return options
+end
+
+def check_git_clean
+	abort "Uncommited changes, make sure everything is commited before you distribute".red unless `git status` =~ /working directory clean/
+end
+
+def find_plist 
+  	plists = Dir.glob("**/*nfo.plist").delete_if { |file| file =~ /(?i)test/ }.delete_if { |file| file =~ /(?i)Pods/ }
+	abort "Could not find ONE plist file found: #{plists}".red unless plists.length == 1
+	return plists[0]
+end
+
+def update_build_number(options, plist_file)
+	if options.build.nil? 
+		options.build = `/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" #{plist_file}`.to_i() + 1
+	end
+	system "/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion #{options.build}\" #{plist_file}"
+	puts "Build number updated to #{options.build}".green
+	options.build
+end
+
+def commit_build_update(build_number, plist_file)
+	system "git add #{plist_file}"
+	system "git commit -m \"Increased the build number to #{build_number}\""
+end
+
+def build_ipa(options)
+	configuration = options.configuration.nil? ? nil : "--configuration #{options.configuration}"
+	scheme = options.scheme.nil? ? nil : "--scheme #{options.scheme}"
+	abort "Build Failed".red unless `ipa build #{scheme} #{configuration}`=~ /(?i)success/
+	puts "Build Succeeded".green
+end
+
+check_git_clean()
+options = parse_args()
+plist_file = find_plist()
+build_number = update_build_number(options, plist_file)
+commit_build_update(build_number, plist_file)
+build_ipa(options)
