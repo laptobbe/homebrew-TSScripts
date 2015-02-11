@@ -1,12 +1,12 @@
 require "formula"
 
-class DistributeTestflight < Formula
+class DistributeCrashlytics < Formula
 	depends_on "colorize" => :ruby
 	depends_on "shenzhen" => :ruby
 
 	homepage "https://github.com/laptobbe/TSScripts"
 	url "https://github.com/laptobbe/TSScripts.git"
-	version '0.0.1'
+	version '0.0.2'
 
 	skip_clean 'bin'
 
