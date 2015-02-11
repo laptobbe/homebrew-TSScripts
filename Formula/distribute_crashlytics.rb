@@ -6,12 +6,12 @@ class DistributeTestflight < Formula
 
 	homepage "https://github.com/laptobbe/TSScripts"
 	url "https://github.com/laptobbe/TSScripts.git"
-	version '0.0.5'
+	version '0.0.1'
 
 	skip_clean 'bin'
 
 	def install
-		bin.install 'distribute_testflight'
-		(bin+'distribute_testflight').chmod 0755
+		bin.install 'distribute_crashlytics'
+		(bin+'distribute_crashlytics').chmod 0755
 	end
 end

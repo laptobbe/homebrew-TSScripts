@@ -1,0 +1,85 @@
+#!/usr/bin/env ruby
+
+require "optparse"
+require "ostruct"
+require "colorize"
+
+def parse_args
+	options = OpenStruct.new
+
+	ARGV.options do |opts|
+		opts.banner = "Usage:  #{File.basename($PROGRAM_NAME)} -g GROUPS -a API_TOKEN -s BUILD_SECRET"
+		
+		opts.separator ""
+		opts.separator "Specific Options:"
+		
+		opts.on("-g", "--groups GROUPS", "The list groups to send the build to") do |groups|
+			options.groups = groups
+		end
+
+		opts.on("-a", "--api_token API_TOKEN", "API Token. Available at https://www.crashlytics.com/settings/organizations") do |api_token|
+			options.api_token = api_token
+		end 
+
+		opts.on("-s", "--build_secret SECRET", "Build Secret. Available at https://www.crashlytics.com/settings/organizations") do |build_secret|
+			options.build_secret = build_secret
+		end
+		
+		opts.separator "Common Options:"
+		
+		opts.on( "-h", "--help",
+		         "Show this message." ) do
+			puts opts
+			exit
+		end
+		
+		begin
+			opts.parse!
+			raise if options.groups.nil?
+			raise if options.api_token.nil?
+			raise if options.build_secret.nil?
+		rescue
+			puts $!
+			puts opts
+			exit
+		end
+	end
+	return options
+end
+
+def check_git_clean
+	abort "Uncommited changes, make sure everything is commited before you distribute".red unless `git status` =~ /working directory clean/
+end
+
+def find_ipa
+	ipas = Dir.glob('*.ipa')
+	abort "Could not find ONE ipa, found: #{ipas}".red unless ipas.length == 1
+	return ipas[0]
+end
+
+def find_framework
+	frameworks = Dir.glob('**/Crashlytics.framework')
+	abort "Could not find ONE framework, found: #{frameworks}".red unless frameworks.length == 1
+	return frameworks[0]
+end
+
+def verify_ipa(ipa)
+	system "ipa info #{ipa}"
+	puts "Verify the ipa information is it correct (Y/n)"
+	verification = gets.downcase.strip
+	if verification != "y"
+		abort "Ipa not validated by user".red
+	end
+end
+
+def distribute(options, framework)
+	#notify = options.notify.nil? ? nil : "--notify"
+	system "ipa distribute:crashlytics --crashlytics_path #{framework} --groups #{options.groups} --api_token #{options.api_token} --build_secret #{options.build_secret}"
+end
+
+check_git_clean()
+options = parse_args()
+ipa = find_ipa()
+framework = find_framework()
+verify_ipa(ipa)
+distribute(options, framework)
