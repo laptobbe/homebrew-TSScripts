@@ -32,6 +32,14 @@ def parse_args
 			puts opts
 			exit
 		end
+
+		begin
+			opts.parse!
+		rescue
+			puts $!
+			puts opts
+			exit
+		end
 	end
 	return options
 end
